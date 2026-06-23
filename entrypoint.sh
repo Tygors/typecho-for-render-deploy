@@ -77,51 +77,11 @@ if [ "$TYPECHO_INSTALL" = "1" ]; then
 fi
 
 echo "Starting Apache..."
-# Enable PHP error display and create a phpinfo endpoint
-cat > /usr/local/etc/php/conf.d/00-typecho.ini <<'INIEOF'
+# Enable PHP error display
+cat > /usr/local/etc/php/conf.d/00-error.ini <<'INIEOF'
 display_errors = On
 display_startup_errors = On
 error_reporting = E_ALL
 INIEOF
-# Create diagnostic endpoints
-echo '<?php phpinfo();' > /app/phpinfo.php 2>/dev/null
-echo '<?php
-error_reporting(E_ALL);
-ini_set("display_errors", 1);
-echo "<h2>Plugin Test</h2>";
-try {
-    $f = "/app/usr/plugins/AxS3Upload/Plugin.php";
-    echo "Plugin file exists: " . (file_exists($f) ? "YES" : "NO") . "<br>";
-    echo "Vendor autoload exists: " . (file_exists("/app/usr/plugins/AxS3Upload/vendor/autoload.php") ? "YES" : "NO") . "<br>";
-    if (file_exists("/app/usr/plugins/AxS3Upload/vendor/autoload.php")) {
-        require_once "/app/usr/plugins/AxS3Upload/vendor/autoload.php";
-        echo "Autoload loaded OK<br>";
-        echo "S3Client class exists: " . (class_exists("Aws\S3\S3Client") ? "YES" : "NO") . "<br>";
-    }
-    $content = file_get_contents($f);
-    if (preg_match("/vendor.*autoload/", $content)) {
-        echo "Plugin.php autoload: vendor/autoload.php ✓<br>";
-    } elseif (preg_match("/aws\.phar/", $content)) {
-        echo "Plugin.php autoload: aws.phar ✗<br>";
-    } else {
-        echo "Plugin.php autoload: MISSING ✗<br>";
-    }
-    // Test loading the plugin class directly
-    require_once $f;
-    echo "Plugin class loaded OK<br>";
-    echo "AxS3Upload_Plugin exists: " . (class_exists("AxS3Upload_Plugin") ? "YES" : "NO") . "<br>";
-    // Try initConnection
-    try {
-        \AxS3Upload_Plugin::initConnection();
-        echo "S3 connection init: OK<br>";
-    } catch (Throwable $e) {
-        echo "S3 connection init ERROR: " . $e->getMessage() . "<br>";
-    }
-} catch (Throwable $e) {
-    echo "FATAL: " . $e->getMessage() . "<br>";
-    echo nl2br($e->getTraceAsString());
-}
-' > /app/plugin-test.php 2>/dev/null
-chown www-data:www-data /app/phpinfo.php /app/plugin-test.php 2>/dev/null || true
 
 exec apache2-foreground

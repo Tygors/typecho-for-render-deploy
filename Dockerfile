@@ -12,7 +12,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     cd /usr/src/typecho/usr/plugins/AxS3Upload && \
     curl -fsSL https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
     composer require aws/aws-sdk-php --no-interaction --update-no-dev --quiet && \
-    sed -i "/use_path_style_endpoint.*true/a            'disable_content_sha256' => true," Plugin.php && \
     sed -i "s|require_once.*aws\.phar.*|require_once __DIR__ . '/vendor/autoload.php';|" Plugin.php && \
     rm -f aws.phar && \
     rm -rf /root/.composer && \
