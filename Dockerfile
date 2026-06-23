@@ -9,10 +9,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip -q /tmp/s3-plugin.zip -d /tmp/s3-plugin && \
     cp -Rf /tmp/s3-plugin/Typecho-S3-Plugin-master/AxS3Upload /usr/src/typecho/usr/plugins/ && \
     rm -rf /tmp/s3-plugin* && \
-    curl -fsSL https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
     cd /usr/src/typecho/usr/plugins/AxS3Upload && \
     curl -fsSL -o aws.phar https://github.com/aws/aws-sdk-php/releases/latest/download/aws.phar && \
-    rm -rf /root/.composer && \
+    sed -i "/use_path_style_endpoint.*true/a            'disable_content_sha256' => true," Plugin.php && \
     rm -rf /var/lib/apt/lists/*
 
 COPY entrypoint.sh /entrypoint.sh
