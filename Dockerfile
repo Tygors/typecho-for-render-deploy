@@ -2,9 +2,14 @@ FROM joyqi/typecho:nightly-php8.2-apache
 
 USER root
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl sqlite3 ca-certificates && \
+    curl sqlite3 ca-certificates unzip && \
     curl -fsSL https://dl.min.io/client/mc/release/linux-amd64/mc -o /usr/local/bin/mc && \
     chmod +x /usr/local/bin/mc && \
+    curl -fsSL -o /tmp/s3-plugin.zip https://github.com/yemaster/Typecho-S3-Plugin/archive/refs/heads/master.zip && \
+    unzip -q /tmp/s3-plugin.zip -d /tmp/s3-plugin && \
+    mkdir -p /usr/src/typecho/usr/plugins/S3 && \
+    cp -Rf /tmp/s3-plugin/Typecho-S3-Plugin-master/* /usr/src/typecho/usr/plugins/S3/ && \
+    rm -rf /tmp/s3-plugin* && \
     rm -rf /var/lib/apt/lists/*
 
 COPY entrypoint.sh /entrypoint.sh
