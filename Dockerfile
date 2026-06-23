@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /tmp/s3-plugin* && \
     curl -fsSL https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
     cd /usr/src/typecho/usr/plugins/AxS3Upload && \
-    composer require aws/aws-sdk-php --no-interaction --no-dev --quiet && \
+    composer require aws/aws-sdk-php --no-interaction --update-no-dev --quiet && \
     sed -i '2i require_once __DIR__ . "/vendor/autoload.php";' /usr/src/typecho/usr/plugins/AxS3Upload/Plugin.php && \
     rm -rf /root/.composer && \
     rm -rf /var/lib/apt/lists/*
