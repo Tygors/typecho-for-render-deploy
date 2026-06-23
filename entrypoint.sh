@@ -77,4 +77,10 @@ if [ "$TYPECHO_INSTALL" = "1" ]; then
 fi
 
 echo "Starting Apache..."
+# PHP config
+cat > /usr/local/etc/php/conf.d/custom.ini <<'INIEOF'
+display_errors = On
+error_reporting = E_ALL
+INIEOF
+
 exec apache2-foreground
