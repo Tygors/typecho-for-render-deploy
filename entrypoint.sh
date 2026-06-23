@@ -98,7 +98,6 @@ try {
         echo "Autoload loaded OK<br>";
         echo "S3Client class exists: " . (class_exists("Aws\S3\S3Client") ? "YES" : "NO") . "<br>";
     }
-    // Check Plugin.php content for the replaced line
     $content = file_get_contents($f);
     if (preg_match("/vendor.*autoload/", $content)) {
         echo "Plugin.php autoload: vendor/autoload.php ✓<br>";
@@ -107,8 +106,19 @@ try {
     } else {
         echo "Plugin.php autoload: MISSING ✗<br>";
     }
+    // Test loading the plugin class directly
+    require_once $f;
+    echo "Plugin class loaded OK<br>";
+    echo "AxS3Upload_Plugin exists: " . (class_exists("AxS3Upload_Plugin") ? "YES" : "NO") . "<br>";
+    // Try initConnection
+    try {
+        \AxS3Upload_Plugin::initConnection();
+        echo "S3 connection init: OK<br>";
+    } catch (Throwable $e) {
+        echo "S3 connection init ERROR: " . $e->getMessage() . "<br>";
+    }
 } catch (Throwable $e) {
-    echo "ERROR: " . $e->getMessage() . "<br>";
+    echo "FATAL: " . $e->getMessage() . "<br>";
     echo nl2br($e->getTraceAsString());
 }
 ' > /app/plugin-test.php 2>/dev/null
