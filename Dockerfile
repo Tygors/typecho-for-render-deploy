@@ -7,8 +7,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     chmod +x /usr/local/bin/mc && \
     curl -fsSL -o /tmp/s3-plugin.zip https://github.com/yemaster/Typecho-S3-Plugin/archive/refs/heads/master.zip && \
     unzip -q /tmp/s3-plugin.zip -d /tmp/s3-plugin && \
-    mkdir -p /usr/src/typecho/usr/plugins/S3 && \
-    cp -Rf /tmp/s3-plugin/Typecho-S3-Plugin-master/* /usr/src/typecho/usr/plugins/S3/ && \
+    cp -Rf /tmp/s3-plugin/Typecho-S3-Plugin-master/AxS3Upload /usr/src/typecho/usr/plugins/ && \
     rm -rf /tmp/s3-plugin* && \
     rm -rf /var/lib/apt/lists/*
 
