@@ -77,11 +77,15 @@ if [ "$TYPECHO_INSTALL" = "1" ]; then
 fi
 
 echo "Starting Apache..."
-# Write PHP info and enable error display
+# Enable PHP error display and create a phpinfo endpoint
 cat > /usr/local/etc/php/conf.d/00-typecho.ini <<'INIEOF'
 display_errors = On
 display_startup_errors = On
 error_reporting = E_ALL
 INIEOF
+# Create diagnostic endpoint
+echo '<?php error_reporting(E_ALL); ini_set("display_errors",1);
+$e = error_get_last(); echo "<pre>ERROR: "; print_r($e); echo "</pre>";
+phpinfo();' > /app/phpinfo.php 2>/dev/null && chown www-data:www-data /app/phpinfo.php 2>/dev/null || true
 
 exec apache2-foreground
