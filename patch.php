@@ -32,5 +32,14 @@ if (strpos($code, $target2) !== false) {
     echo "Added disable_content_sha256 OK\n";
 }
 
+// 3. Fix uploadHandle: 'type' must be file extension, not MIME type
+//    Otherwise isImage check fails (compares extension against 'png' not 'image/png')
+$target3 = "'type' => \$file['type'],";
+$replace3 = "'type' => strtolower(pathinfo(\$file['name'], PATHINFO_EXTENSION)),";
+if (strpos($code, $target3) !== false) {
+    $code = str_replace($target3, $replace3, $code);
+    echo "Fixed uploadHandle type field OK\n";
+}
+
 file_put_contents($file, $code);
 echo "Plugin.php patched successfully\n";
