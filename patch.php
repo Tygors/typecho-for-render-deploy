@@ -2,10 +2,15 @@
 $file = '/usr/src/typecho/usr/plugins/AxS3Upload/Plugin.php';
 $code = file_get_contents($file);
 
-// 1. Try-catch for attachmentHandle + debug logging
+// 1. Try-catch + prefer stored url
 $target = 'public static function attachmentHandle(array $content)';
 $replace = 'public static function attachmentHandle($content) {
     try {
+        // 优先使用上传时存好的 url（来自 S3 putObject 的 ObjectURL）
+        $storedUrl = $content["url"] ?? null;
+        if ($storedUrl) {
+            return $storedUrl;
+        }
         $url = self::_attachmentHandle($content);
         error_log("AxS3Upload OK: " . $url);
         return $url;
@@ -33,7 +38,6 @@ if (strpos($code, $target2) !== false) {
 }
 
 // 3. Fix uploadHandle: 'type' must be file extension, not MIME type
-//    Otherwise isImage check fails (compares extension against 'png' not 'image/png')
 $target3 = "'type' => \$file['type'],";
 $replace3 = "'type' => strtolower(pathinfo(\$file['name'], PATHINFO_EXTENSION)),";
 if (strpos($code, $target3) !== false) {
@@ -42,7 +46,6 @@ if (strpos($code, $target3) !== false) {
 }
 
 // 4. Fix uploadHandle: 'mime' cannot use mime_content_type() with S3 path
-//    Change from Typecho_Common::mimeContentType($fullPath) to $file['type']
 $target4 = "'mime'  =>  Typecho_Common::mimeContentType(\$fullPath)";
 $replace4 = "'mime'  =>  \$file['type']";
 if (strpos($code, $target4) !== false) {
@@ -50,20 +53,19 @@ if (strpos($code, $target4) !== false) {
     echo "Fixed uploadHandle mime field OK\n";
 }
 
-// 5. Guard _attachmentHandle body: prefer stored $content['url'], fall back to path methods.
-//    Targets use ORIGINAL plugin code patterns ($content['attachment']->path).
-$target5 = "\$s3ObjectUrl = \$bucketDomain . '/' . ltrim(\$content['attachment']->path, '/');";
-$replace5 = "\$s3ObjectUrl = \$content['url'] ?? \$bucketDomain . '/' . ltrim(\$content['attachment']->path, '/');";
-if (strpos($code, $target5) !== false) {
-    $code = str_replace($target5, $replace5, $code);
-    echo "Patched _attachmentHandle to prefer stored url (bucketDomain branch) OK\n";
+// 5. Prefer stored url in _attachmentHandle body
+$target5a = "\$s3ObjectUrl = \$bucketDomain . '/' . ltrim(\$content['attachment']->path, '/');";
+$replace5a = "\$s3ObjectUrl = \$content['url'] ?? \$bucketDomain . '/' . ltrim(\$content['attachment']->path, '/');";
+if (strpos($code, $target5a) !== false) {
+    $code = str_replace($target5a, $replace5a, $code);
+    echo "Patched _attachmentHandle prefer stored url (bucketDomain) OK\n";
 }
 
 $target5b = "\$s3ObjectUrl = \$s3->getObjectUrl(\$option->bucket, \$content['attachment']->path);";
 $replace5b = "\$s3ObjectUrl = \$content['url'] ?? \$s3->getObjectUrl(\$option->bucket, \$content['attachment']->path);";
 if (strpos($code, $target5b) !== false) {
     $code = str_replace($target5b, $replace5b, $code);
-    echo "Patched _attachmentHandle to prefer stored url (getObjectUrl branch) OK\n";
+    echo "Patched _attachmentHandle prefer stored url (getObjectUrl) OK\n";
 }
 
 file_put_contents($file, $code);
