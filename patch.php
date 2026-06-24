@@ -2,18 +2,18 @@
 $file = '/usr/src/typecho/usr/plugins/AxS3Upload/Plugin.php';
 $code = file_get_contents($file);
 
-// 1. Try-catch for attachmentHandle with better fallback
+// 1. Try-catch for attachmentHandle + debug logging
 $target = 'public static function attachmentHandle(array $content)';
 $replace = 'public static function attachmentHandle(array $content) {
     try {
-        return self::_attachmentHandle($content);
+        $url = self::_attachmentHandle($content);
+        error_log("AxS3Upload OK: " . $url);
+        return $url;
     } catch (Throwable $e) {
-        error_log("AxS3Upload attachmentHandle: " . (string)$e);
-        // Fallback: construct URL directly from endpoint + bucket + path
+        error_log("AxS3Upload ERR: " . (string)$e);
         $opt = self::getConfig();
-        $endpoint = rtrim($opt->endpoint, "/");
-        $path = ltrim($content["attachment"]->path ?? "", "/");
-        $url = $endpoint . "/" . $opt->bucket . "/" . $path;
+        $url = rtrim($opt->endpoint, "/") . "/" . $opt->bucket . "/" . ltrim($content["attachment"]->path ?? "", "/");
+        error_log("AxS3Upload FALLBACK: " . $url);
         return $url;
     }
 }

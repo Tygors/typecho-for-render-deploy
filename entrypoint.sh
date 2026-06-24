@@ -84,4 +84,11 @@ display_startup_errors = On
 error_reporting = E_ALL
 INIEOF
 
-exec apache2-foreground
+# Run Apache in background so we can trap shutdown signals
+apache2-foreground &
+APACHE_PID=$!
+
+# Trap SIGTERM/SIGINT to run final backup before shutdown
+trap 'echo "Shutting down, running final backup..."; do_backup; echo "Final backup complete"; kill $APACHE_PID 2>/dev/null; exit 0' TERM INT
+
+wait $APACHE_PID
