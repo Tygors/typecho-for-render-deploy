@@ -6,15 +6,12 @@ $code = file_get_contents($file);
 $target = 'public static function attachmentHandle(array $content)';
 $replace = 'public static function attachmentHandle($content) {
     try {
-        error_log("AxS3Upload DEBUG content keys: " . (is_object($content) ? implode(",", array_keys((array)$content)) : "NOT_OBJECT"));
-        error_log("AxS3Upload DEBUG url exists: " . (isset($content["url"]) ? "YES" : "NO"));
         $storedUrl = $content["url"] ?? null;
-        error_log("AxS3Upload DEBUG storedUrl: " . ($storedUrl ?? "NULL"));
         if ($storedUrl) {
             return $storedUrl;
         }
         $url = self::_attachmentHandle($content);
-        error_log("AxS3Upload OK: " . $url);
+        error_log("AxS3Upload: _attachmentHandle returned " . $url);
         return $url;
     } catch (Throwable $e) {
         error_log("AxS3Upload ERR: " . (string)$e);
@@ -73,12 +70,12 @@ if (strpos($code, $target5b) !== false) {
 file_put_contents($file, $code);
 echo "Plugin.php patched successfully\n";
 
-// ========== Also patch Contents.php to bypass attachmentHandle entirely ==========
+// ========== Patch Contents.php ==========
 $file2 = '/usr/src/typecho/var/Widget/Base/Contents.php';
 $code2 = file_get_contents($file2);
 
 $target6 = "\$attachment->url = Upload::attachmentHandle(\$attachment);";
-$replace6 = "\$attachment->url = \$content['url'] ?? Upload::attachmentHandle(\$attachment);";
+$replace6 = "\$urlFromDb = \$content['url'] ?? null; error_log('AxS3Upload: ___attachment url from DB = ' . (\$urlFromDb ?? 'NULL') . ' | path=' . (\$content['path'] ?? 'N/A')); \$attachment->url = \$urlFromDb ?? Upload::attachmentHandle(\$attachment);";
 if (strpos($code2, $target6) !== false) {
     $code2 = str_replace($target6, $replace6, $code2);
     file_put_contents($file2, $code2);
