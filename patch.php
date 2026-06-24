@@ -50,17 +50,17 @@ if (strpos($code, $target4) !== false) {
     echo "Fixed uploadHandle mime field OK\n";
 }
 
-// 5. Guard _attachmentHandle body: prefer stored $content["url"], fall back to path methods.
-//    The stored 'url' is set by uploadHandle from S3 putObject result (= correct MinIO URL).
-$target5 = "\$s3ObjectUrl = \$bucketDomain . '/' . ltrim(\$content['path'], '/');";
-$replace5 = "\$s3ObjectUrl = \$content[\"url\"] ?? \$bucketDomain . '/' . ltrim(\$content['path'], '/');";
+// 5. Guard _attachmentHandle body: prefer stored $content['url'], fall back to path methods.
+//    Targets use ORIGINAL plugin code patterns ($content['attachment']->path).
+$target5 = "\$s3ObjectUrl = \$bucketDomain . '/' . ltrim(\$content['attachment']->path, '/');";
+$replace5 = "\$s3ObjectUrl = \$content['url'] ?? \$bucketDomain . '/' . ltrim(\$content['attachment']->path, '/');";
 if (strpos($code, $target5) !== false) {
     $code = str_replace($target5, $replace5, $code);
     echo "Patched _attachmentHandle to prefer stored url (bucketDomain branch) OK\n";
 }
 
-$target5b = "\$s3ObjectUrl = \$s3->getObjectUrl(\$option->bucket, \$content['path']);";
-$replace5b = "\$s3ObjectUrl = \$content[\"url\"] ?? \$s3->getObjectUrl(\$option->bucket, \$content['path']);";
+$target5b = "\$s3ObjectUrl = \$s3->getObjectUrl(\$option->bucket, \$content['attachment']->path);";
+$replace5b = "\$s3ObjectUrl = \$content['url'] ?? \$s3->getObjectUrl(\$option->bucket, \$content['attachment']->path);";
 if (strpos($code, $target5b) !== false) {
     $code = str_replace($target5b, $replace5b, $code);
     echo "Patched _attachmentHandle to prefer stored url (getObjectUrl branch) OK\n";
