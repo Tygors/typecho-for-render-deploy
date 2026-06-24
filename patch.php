@@ -6,8 +6,10 @@ $code = file_get_contents($file);
 $target = 'public static function attachmentHandle(array $content)';
 $replace = 'public static function attachmentHandle($content) {
     try {
-        // 优先使用上传时存好的 url（来自 S3 putObject 的 ObjectURL）
+        error_log("AxS3Upload DEBUG content keys: " . (is_object($content) ? implode(",", array_keys((array)$content)) : "NOT_OBJECT"));
+        error_log("AxS3Upload DEBUG url exists: " . (isset($content["url"]) ? "YES" : "NO"));
         $storedUrl = $content["url"] ?? null;
+        error_log("AxS3Upload DEBUG storedUrl: " . ($storedUrl ?? "NULL"));
         if ($storedUrl) {
             return $storedUrl;
         }
