@@ -2,9 +2,22 @@
 $file = '/usr/src/typecho/usr/plugins/AxS3Upload/Plugin.php';
 $code = file_get_contents($file);
 
-// 1. Try-catch for attachmentHandle to prevent write-post.php 500
+// 1. Try-catch for attachmentHandle with better fallback
 $target = 'public static function attachmentHandle(array $content)';
-$replace = 'public static function attachmentHandle(array $content) { try { return self::_attachmentHandle($content); } catch (Throwable $e) { error_log("S3: " . $e->getMessage()); return $content["attachment"]->url ?? ""; } } private static function _attachmentHandle(array $content)';
+$replace = 'public static function attachmentHandle(array $content) {
+    try {
+        return self::_attachmentHandle($content);
+    } catch (Throwable $e) {
+        error_log("AxS3Upload attachmentHandle: " . (string)$e);
+        // Fallback: construct URL directly from endpoint + bucket + path
+        $opt = self::getConfig();
+        $endpoint = rtrim($opt->endpoint, "/");
+        $path = ltrim($content["attachment"]->path ?? "", "/");
+        $url = $endpoint . "/" . $opt->bucket . "/" . $path;
+        return $url;
+    }
+}
+private static function _attachmentHandle(array $content)';
 if (strpos($code, $target) !== false) {
     $code = str_replace($target, $replace, $code);
     echo "Patched attachmentHandle OK\n";
