@@ -13,35 +13,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl -fsSL https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
     composer require aws/aws-sdk-php --no-interaction --update-no-dev --quiet && \
     sed -i "s|require_once.*aws\.phar.*|require_once __DIR__ . '/vendor/autoload.php';|" Plugin.php && \
-    cat > /usr/src/typecho/usr/plugins/AxS3Upload/patch.php <<'PATCHEOF'
-<?php
-$file = 'Plugin.php';
-$code = file_get_contents($file);
-
-// 1. Try-catch for attachmentHandle
-$target = 'public static function attachmentHandle(array $content)';
-$replace = 'public static function attachmentHandle(array $content) { try { return self::_attachmentHandle($content); } catch (Throwable $e) { error_log("S3: " . $e->getMessage()); return $content["attachment"]->url ?? ""; } } private static function _attachmentHandle(array $content)';
-if (strpos($code, $target) !== false) {
-    $code = str_replace($target, $replace, $code);
-    echo "Patched attachmentHandle OK\n";
-}
-
-// 2. Add disable_content_sha256
-$target2 = "'use_path_style_endpoint' => true,";
-$replace2 = "'use_path_style_endpoint' => true,
-            'disable_content_sha256' => true,";
-if (strpos($code, $target2) !== false) {
-    $code = str_replace($target2, $replace2, $code);
-    echo "Added disable_content_sha256 OK\n";
-}
-
-file_put_contents($file, $code);
-PATCHEOF
-    php /usr/src/typecho/usr/plugins/AxS3Upload/patch.php && \
-    rm -f /usr/src/typecho/usr/plugins/AxS3Upload/patch.php && \
     rm -f aws.phar && \
     rm -rf /root/.composer && \
     rm -rf /var/lib/apt/lists/*
+
+# Patch plugin to handle attachmentHandle errors
+COPY patch.php /tmp/patch.php
+RUN php /tmp/patch.php && rm -f /tmp/patch.php
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
