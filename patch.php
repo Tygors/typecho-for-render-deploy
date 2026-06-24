@@ -19,9 +19,9 @@ if (strpos($code, $target2) !== false) {
     $code = str_replace($target2, $replace2, $code);
     echo "Fixed uploadHandle mime field OK\n";
 }
-// add touch before the return ]
+// add touch after the return ];
 $target2b = "            ];\n        } catch (AwsException \$e) {";
-$replace2b = "            @touch('/tmp/typecho-backup-trigger');\n            ];\n        } catch (AwsException \$e) {";
+$replace2b = "            ];\n            @touch('/tmp/typecho-backup-trigger');\n        } catch (AwsException \$e) {";
 if (strpos($code, $target2b) !== false) {
     $code = str_replace($target2b, $replace2b, $code);
     echo "Added backup trigger on upload OK\n";
