@@ -50,5 +50,14 @@ if (strpos($code, $target4) !== false) {
     echo "Fixed uploadHandle mime field OK\n";
 }
 
+// 5. Fix all $content['attachment']->path references — Typecho passes Config
+//    with flat keys (path/name/type/…), NOT nested under ['attachment'].
+$target5 = "\$content['attachment']->path";
+$replace5 = "\$content['path']";
+if (strpos($code, $target5) !== false) {
+    $code = str_replace($target5, $replace5, $code);
+    echo "Fixed attachment->path references OK\n";
+}
+
 file_put_contents($file, $code);
 echo "Plugin.php patched successfully\n";
