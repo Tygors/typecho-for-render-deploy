@@ -12,7 +12,7 @@ $replace = 'public static function attachmentHandle($content) {
     } catch (Throwable $e) {
         error_log("AxS3Upload ERR: " . (string)$e);
         $opt = self::getConfig();
-        $url = rtrim($opt->endpoint, "/") . "/" . $opt->bucket . "/" . ltrim($content["path"] ?? "", "/");
+        $url = $content["url"] ?? rtrim($opt->endpoint, "/") . "/" . $opt->bucket . "/" . ltrim($content["path"] ?? "", "/");
         error_log("AxS3Upload FALLBACK: " . $url);
         return $url;
     }
@@ -50,20 +50,20 @@ if (strpos($code, $target4) !== false) {
     echo "Fixed uploadHandle mime field OK\n";
 }
 
-// 5. Fix $content['attachment']->path in _attachmentHandle only (Config is flat)
-//    Do NOT touch deleteHandle which has $content['attachment']->path (nested correctly).
-$target5 = "ltrim(\$content['attachment']->path, '/')";
-$replace5 = "ltrim(\$content['path'], '/')";
+// 5. Guard _attachmentHandle body: prefer stored $content["url"], fall back to path methods.
+//    The stored 'url' is set by uploadHandle from S3 putObject result (= correct MinIO URL).
+$target5 = "\$s3ObjectUrl = \$bucketDomain . '/' . ltrim(\$content['path'], '/');";
+$replace5 = "\$s3ObjectUrl = \$content[\"url\"] ?? \$bucketDomain . '/' . ltrim(\$content['path'], '/');";
 if (strpos($code, $target5) !== false) {
     $code = str_replace($target5, $replace5, $code);
-    echo "Fixed _attachmentHandle path ref 1 OK\n";
+    echo "Patched _attachmentHandle to prefer stored url (bucketDomain branch) OK\n";
 }
 
-$target5b = "getObjectUrl(\$option->bucket, \$content['attachment']->path)";
-$replace5b = "getObjectUrl(\$option->bucket, \$content['path'])";
+$target5b = "\$s3ObjectUrl = \$s3->getObjectUrl(\$option->bucket, \$content['path']);";
+$replace5b = "\$s3ObjectUrl = \$content[\"url\"] ?? \$s3->getObjectUrl(\$option->bucket, \$content['path']);";
 if (strpos($code, $target5b) !== false) {
     $code = str_replace($target5b, $replace5b, $code);
-    echo "Fixed _attachmentHandle path ref 2 OK\n";
+    echo "Patched _attachmentHandle to prefer stored url (getObjectUrl branch) OK\n";
 }
 
 file_put_contents($file, $code);
