@@ -17,13 +17,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /root/.composer && \
     rm -rf /var/lib/apt/lists/*
 
-# Patch plugin to handle attachmentHandle errors
 COPY patch.php /tmp/patch.php
 RUN php /tmp/patch.php && rm -f /tmp/patch.php
-
-# Patch editor-js.php: insert Markdown syntax directly instead of using Pagedown dialog
-COPY patch-editor.php /tmp/patch-editor.php
-RUN php /tmp/patch-editor.php && rm -f /tmp/patch-editor.php
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
