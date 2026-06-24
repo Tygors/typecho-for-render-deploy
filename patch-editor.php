@@ -16,6 +16,19 @@
 $file = '/usr/src/typecho/admin/editor-js.php';
 $code = file_get_contents($file);
 
+// Also add console.log to uploadComplete for debugging
+$targetUc = 'Typecho.uploadComplete = function (attachment) {
+            Typecho.insertFileToEditor(attachment.title, attachment.url, attachment.isImage);
+        };';
+$replaceUc = 'Typecho.uploadComplete = function (attachment) {
+            console.log(\'[AxS3Upload] uploadComplete url:\', attachment.url);
+            Typecho.insertFileToEditor(attachment.title, attachment.url, attachment.isImage);
+        };';
+if (strpos($code, $targetUc) !== false) {
+    $code = str_replace($targetUc, $replaceUc, $code);
+    echo "Patched uploadComplete with console.log OK\n";
+}
+
 $target = 'Typecho.insertFileToEditor = function (file, url, isImage) {
             const button = isImage ? imageButton : linkButton;
 
