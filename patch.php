@@ -72,3 +72,18 @@ if (strpos($code, $target5b) !== false) {
 
 file_put_contents($file, $code);
 echo "Plugin.php patched successfully\n";
+
+// ========== Also patch Contents.php to bypass attachmentHandle entirely ==========
+$file2 = '/usr/src/typecho/var/Widget/Base/Contents.php';
+$code2 = file_get_contents($file2);
+
+$target6 = "\$attachment->url = Upload::attachmentHandle(\$attachment);";
+$replace6 = "\$attachment->url = \$content['url'] ?? Upload::attachmentHandle(\$attachment);";
+if (strpos($code2, $target6) !== false) {
+    $code2 = str_replace($target6, $replace6, $code2);
+    file_put_contents($file2, $code2);
+    echo "Patched Contents.php ___attachment to use stored url OK\n";
+} else {
+    echo "WARNING: Contents.php target not found\n";
+    exit(1);
+}
