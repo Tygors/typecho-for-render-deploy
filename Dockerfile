@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl -fsSL https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer && \
     composer require aws/aws-sdk-php --no-interaction --update-no-dev --quiet && \
     sed -i "s|require_once.*aws\.phar.*|require_once __DIR__ . '/vendor/autoload.php';|" Plugin.php && \
+    sed -i "s|Typecho_Plugin::factory('Widget_Upload')->attachmentHandle.*||" Plugin.php && \
     rm -f aws.phar && \
     rm -rf /root/.composer && \
     rm -rf /var/lib/apt/lists/*
