@@ -41,5 +41,14 @@ if (strpos($code, $target3) !== false) {
     echo "Fixed uploadHandle type field OK\n";
 }
 
+// 4. Fix uploadHandle: 'mime' cannot use mime_content_type() with S3 path
+//    Change from Typecho_Common::mimeContentType($fullPath) to $file['type']
+$target4 = "'mime'  =>  Typecho_Common::mimeContentType(\$fullPath)";
+$replace4 = "'mime'  =>  \$file['type']";
+if (strpos($code, $target4) !== false) {
+    $code = str_replace($target4, $replace4, $code);
+    echo "Fixed uploadHandle mime field OK\n";
+}
+
 file_put_contents($file, $code);
 echo "Plugin.php patched successfully\n";
