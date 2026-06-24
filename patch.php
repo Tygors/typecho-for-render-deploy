@@ -4,7 +4,7 @@ $code = file_get_contents($file);
 
 // 1. Try-catch for attachmentHandle + debug logging
 $target = 'public static function attachmentHandle(array $content)';
-$replace = 'public static function attachmentHandle(array $content) {
+$replace = 'public static function attachmentHandle($content) {
     try {
         $url = self::_attachmentHandle($content);
         error_log("AxS3Upload OK: " . $url);
@@ -17,7 +17,7 @@ $replace = 'public static function attachmentHandle(array $content) {
         return $url;
     }
 }
-private static function _attachmentHandle(array $content)';
+private static function _attachmentHandle($content)';
 if (strpos($code, $target) !== false) {
     $code = str_replace($target, $replace, $code);
     echo "Patched attachmentHandle OK\n";
