@@ -12,7 +12,7 @@ $replace = 'public static function attachmentHandle($content) {
     } catch (Throwable $e) {
         error_log("AxS3Upload ERR: " . (string)$e);
         $opt = self::getConfig();
-        $url = rtrim($opt->endpoint, "/") . "/" . $opt->bucket . "/" . ltrim($content["attachment"]->path ?? "", "/");
+        $url = rtrim($opt->endpoint, "/") . "/" . $opt->bucket . "/" . ltrim($content["path"] ?? "", "/");
         error_log("AxS3Upload FALLBACK: " . $url);
         return $url;
     }
@@ -50,13 +50,20 @@ if (strpos($code, $target4) !== false) {
     echo "Fixed uploadHandle mime field OK\n";
 }
 
-// 5. Fix all $content['attachment']->path references — Typecho passes Config
-//    with flat keys (path/name/type/…), NOT nested under ['attachment'].
-$target5 = "\$content['attachment']->path";
-$replace5 = "\$content['path']";
+// 5. Fix $content['attachment']->path in _attachmentHandle only (Config is flat)
+//    Do NOT touch deleteHandle which has $content['attachment']->path (nested correctly).
+$target5 = "ltrim(\$content['attachment']->path, '/')";
+$replace5 = "ltrim(\$content['path'], '/')";
 if (strpos($code, $target5) !== false) {
     $code = str_replace($target5, $replace5, $code);
-    echo "Fixed attachment->path references OK\n";
+    echo "Fixed _attachmentHandle path ref 1 OK\n";
+}
+
+$target5b = "getObjectUrl(\$option->bucket, \$content['attachment']->path)";
+$replace5b = "getObjectUrl(\$option->bucket, \$content['path'])";
+if (strpos($code, $target5b) !== false) {
+    $code = str_replace($target5b, $replace5b, $code);
+    echo "Fixed _attachmentHandle path ref 2 OK\n";
 }
 
 file_put_contents($file, $code);
